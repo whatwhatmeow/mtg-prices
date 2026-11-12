@@ -22,7 +22,7 @@ jobs:
               return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=600)
           src = os.environ.get("BULK_FILE")
           if not src:
-              meta = json.load(get("https://api.scryfall.com/bulk-data/default-cards"))
+              meta = json.load(get("https://api.scryfall.com/bulk-data/default_cards"))
               src = "bulk.json"
               with get(meta["download_uri"]) as r, open(src, "wb") as f:
                   while chunk := r.read(1 << 20):
