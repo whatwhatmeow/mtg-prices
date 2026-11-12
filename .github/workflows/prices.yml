@@ -22,11 +22,19 @@ jobs:
               return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=600)
           src = os.environ.get("BULK_FILE")
           if not src:
-              meta = json.load(get("https://api.scryfall.com/bulk-data/default_cards"))
+              listing = json.load(get("https://api.scryfall.com/bulk-data"))
+              files = listing.get("data", []) if isinstance(listing, dict) else []
+              uri = next((b.get("download_uri") for b in files if b.get("type") == "default_cards"), None)
+              if not uri:
+                  print("Scryfall did not list a default_cards file. It answered:")
+                  print(json.dumps(listing)[:3000])
+                  raise SystemExit(1)
+              print("Downloading", uri)
               src = "bulk.json"
-              with get(meta["download_uri"]) as r, open(src, "wb") as f:
+              with get(uri) as r, open(src, "wb") as f:
                   while chunk := r.read(1 << 20):
                       f.write(chunk)
+              print("Downloaded", os.path.getsize(src) // 1_000_000, "MB")
           cards = json.load(open(src, encoding="utf-8"))
           SKIP = {"token", "double_faced_token", "emblem", "art_series", "vanguard", "scheme", "planar"}
           prices, info, alias = {}, {}, {}
